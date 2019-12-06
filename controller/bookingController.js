@@ -108,43 +108,10 @@ exports.bookBusByNumber = catchAsync(async (req, res, next) => {
       new AppError("Please make sure the date entered is valid", 404)
     );
   }
-  // 1) search for buses between particular source and destination
-  // const buses = await Bus.find({
-  //   startAt,
-  //   destination,
-  //   active: true
-  // });
 
+  // 1) search for buses between particular source and destination
   // 2) if busses exists then check the booking status for the particular date
   if (checkBusSchedule(req, res, next)) {
-    // let busBooking = await BusBooking.find({
-    //   date,
-    //   startAt,
-    //   destination
-    // });
-
-    // 3) if booinkg does not exists then add all the active busses into that booking list for that date
-    // if (busBooking.length === 0) {
-    //   const booking = new BusBooking({ date, startAt, destination });
-    //   buses.forEach(bus => {
-    //     let startTime = [bus.startTime.getHours(), bus.startTime.getMinutes()];
-    //     let newBusTime = new Date(date).setHours(
-    //       startTime[0],
-    //       startTime[1],
-    //       0,
-    //       0
-    //     );
-    //     booking.busses.push({
-    //       number: bus.number,
-    //       totalSeats: bus.noOfSeats,
-    //       startTime: newBusTime
-    //     });
-    //   });
-    //   busBooking = await booking.save();
-    // }
-
-    // this will return the parent with all its subdocuments(if this is not provided { "busses.$": 1 })  if only the child is present else will retun null
-    // 4) find the bus subdocument which has to be booked
     let myBus = await BusBooking.findOne(
       {
         date,
@@ -157,7 +124,7 @@ exports.bookBusByNumber = catchAsync(async (req, res, next) => {
     if (!myBus) {
       return next(new AppError("Bus not available", 404));
     }
-    // console.log(req.user._id);
+
     //this is a method defined on the each document
     //
     //check to make sure that only buses whoes departure time is greater then the booking request time by 2 hours is booked
