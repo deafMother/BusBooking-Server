@@ -1,11 +1,14 @@
 const Bus = require("../model/busModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/AppError");
+const { addNewBus } = require("../controller/bookingController");
 
 // add a bus to the 'bus' collection
 // pending: When a new bus is added to the bus 'collection' and if it is active then it should be updated to be included in the bus list for a particular date if it matches the criteria
+// restrict this route to only administrators: Pending
 exports.addBus = catchAsync(async (req, res, next) => {
   const doc = await Bus.create(req.body);
+  await addNewBus(doc);
   res.status(200).json({
     status: "success",
     data: {

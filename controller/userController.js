@@ -19,10 +19,12 @@ const generateToken = (user, statusCode, res) => {
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ), // the expire time hs to be in milliseconds
     secure: false, // send only on secire https connections if true
-    httpOnly: true //prevent the browser from updating the cookie in any way
+    httpOnly: false, //prevent the browser from updating the cookie in any way
+    sameSite: false,
+    signed: false
   };
   user.password = undefined; // remove the password from the response
-  res.cookie("jwt", token, cookieOptions);
+  res.cookie("jwt-bus-token", token, cookieOptions);
   res.status(statusCode).json({
     status: "success",
     token,
@@ -102,7 +104,7 @@ exports.loginIn = CatchAsync(async (req, res, next) => {
 exports.protect = CatchAsync(async (req, res, next) => {
   let token;
   // 1) check if the token exists, i.e  has been send in the request
-  console.log(req.cookies);
+  // console.log(req.cookies);
 
   if (
     req.headers.authorization &&
@@ -128,5 +130,40 @@ exports.protect = CatchAsync(async (req, res, next) => {
   //res.locals.user = freshUser;
   next();
 });
+// check if the user if loged in or not
+exports.checkLoginStatus = CatchAsync(async (req, res, next) => {
+  let token;
+  // 1) check if the token exists, i.e  has been send in the request
+  // console.log(req.cookies);
 
-// implement password change feature
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  }
+  // } else if (req.cookies) {
+  //   token = req.cookies.jwt;
+  // }
+  if (!token) {
+    return next(
+      new AppError("Authentication failed, Please login in to gain access", 401)
+    );
+  }
+  // 2) validate the user of the token still exists in the database
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  //3) check if the user still exists
+  const freshUser = await User.findById(decoded.id);
+  if (!freshUser) {
+    return next(new AppError("The User of this token has been deleted", 401));
+  }
+  res.status(200).json({
+    status: "success",
+    data: {
+      message: "User logged in"
+    }
+  });
+});
+
+// implement password change feature: pending
+// implement a verify-token each time a user opens a page to automatically login the user: pending

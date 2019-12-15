@@ -2,9 +2,7 @@ const Bus = require("../model/busModel");
 const BusBooking = require("../model/bookingModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/AppError");
-const mongoose = require("mongoose");
 const AllBookings = require("../model/allBookingsModel");
-const addToBookings = require("../utils/addToAllBookings");
 const User = require("../model/userModel");
 
 // function to compare the cancel time and the bus time
@@ -12,7 +10,6 @@ let compareTimes = (cancelReqTime, busTime) => {
   // console.log(new Date(cancelReqTime).toString());
   // console.log(busTime.toString());
   let diffInHours = (busTime - cancelReqTime) / 36e5; // gives the hour difference bet the two timestamps
-  console.log(diffInHours.toFixed(2));
   return diffInHours.toFixed(2) >= 2;
 };
 
@@ -56,21 +53,55 @@ let checkBusSchedule = async (req, res, next) => {
     }
     req.busBooking = busBooking;
     return true;
-    //   // 4) if the booking length and the active busses list do not match then update .i.e add the missing bus(s) into the bus booking list
-    //   // i.e check if all the active busses are in the bus booking list, if not then update the bus booking list for that day
-    //   console.log("all bus list", buses.length);
-    //   console.log(
-    //     "busses in the bus booking list for that date",
-    //     busBooking.busses.length
-    //   );
   } else {
     return false;
   }
 };
 
+// function to book a seat for a bus
+let upddateBusSeat = async (req, res, next) => {};
+
+// add newly added bus  to the booking  list for current date plus two
+exports.addNewBus = async bus => {
+  let { startAt, destination } = bus;
+  //add for the current date, and the next two dates
+  let timestampToday = new Date(new Date().setHours(0, 0, 0, 0)); // current date
+  let todayDateString = new Date().toISOString().split("T")[0];
+  let timestampFutureOne = new Date().setDate(timestampToday.getDate() + 1); // One days into future
+  let tomorowsDate = new Date(timestampFutureOne).toISOString().split("T")[0];
+  let timestampFutureTwo = new Date().setDate(timestampToday.getDate() + 2); // Two days into future
+  let dayAfterTmrw = new Date(timestampFutureTwo).toISOString().split("T")[0];
+  let dates = [todayDateString, tomorowsDate, dayAfterTmrw];
+  // now for each date if the booking list exists then add it to the list
+
+  dates.forEach(async date => {
+    console.log(date);
+    let busBooking = await BusBooking.findOne({
+      date,
+      startAt,
+      destination
+    });
+    if (busBooking) {
+      let startTime = [bus.startTime.getHours(), bus.startTime.getMinutes()];
+      let newBusTime = new Date(date).setHours(
+        startTime[0],
+        startTime[1],
+        0,
+        0
+      );
+      // we are pushing into an array inside a document, note: if we apply update then the pre save middleware on the nested documnet will not execute
+      busBooking.busses.push({
+        number: bus.number,
+        totalSeats: bus.noOfSeats,
+        startTime: newBusTime
+      });
+      await busBooking.save();
+    }
+  });
+};
+
 exports.getBusStatusForDate = catchAsync(async (req, res, next) => {
   // make sure that the date provided is between current and < current + 2
-  //const { startAt, destination, date } = req.query;
   const { date } = req.query;
   let timestampFuture =
     new Date().setHours(0, 0, 0, 0) + 3 * 24 * 60 * 60 * 1000; // two days into future
@@ -125,14 +156,14 @@ exports.bookBusByNumber = catchAsync(async (req, res, next) => {
       return next(new AppError("Bus not available", 404));
     }
 
-    //this is a method defined on the each document
     //
+    //this is a method defined on the each document
     //check to make sure that only buses whoes departure time is greater then the booking request time by 2 hours is booked
     //
 
-    let cancelReqTime = new Date();
+    let reqTime = new Date();
     let busTime = myBus.busses[0].startTime;
-    if (!compareTimes(cancelReqTime, busTime)) {
+    if (!compareTimes(reqTime, busTime)) {
       return next(
         new AppError(
           "Invalid Time: Cannot Book backdates or book date within two hours of departure date",
@@ -201,7 +232,6 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
   
   */
   // make sure that the date provided is between current and bus departure time  2hours
-
   // let timestampFuture =
   //   new Date().setHours(0, 0, 0, 0) + 3 * 24 * 60 * 60 * 1000; // two days into future
   if (!date) {
@@ -296,5 +326,4 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
           UPDATING the user document with the booked id, **DONE**
            CANCELLING make sure that it is the user who has booked the seats is the one who is cancelling the seats, **DONE**
            Updating the bus for that day document with the new booked document id, **DONE**
-
 */

@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: [true, "Please provide an email"],
-    //unique: true,
+    //unique: true, note: this should be unique in production
     lowercase: true,
     validate: [validator.isEmail, "Please provide a valid email"]
   },
@@ -58,7 +58,7 @@ const userSchema = new mongoose.Schema({
 userSchema.pre("save", async function(next) {
   console.log("pre save running");
   this.password = await bcrypt.hash(this.password, 12);
-  this.passwordConfirm = undefined;
+  this.passwordConfirm = undefined; //prevent the password confirm from being persisted in the database
   next();
 });
 

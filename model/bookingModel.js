@@ -1,6 +1,6 @@
 //
 //
-// the booking model will have all have all the booking details for all the busess for each day
+// the booking model will have all the booking details for all the busess for each day
 // each document will have an entry for each day...which will further contain all the bookings
 //
 //
