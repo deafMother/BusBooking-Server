@@ -122,7 +122,9 @@ exports.protect = CatchAsync(async (req, res, next) => {
   // 2) validate the user of the token still exists in the database
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
   //3) check if the user still exists
-  const freshUser = await User.findById(decoded.id);
+  const freshUser = await User.findById(decoded.id).populate(
+    "myBookings.bookingNumer"
+  );
   if (!freshUser) {
     return next(new AppError("The User of this token has been deleted", 401));
   }
@@ -160,7 +162,8 @@ exports.checkLoginStatus = CatchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     data: {
-      message: "User logged in"
+      message: "User logged in",
+      data: freshUser
     }
   });
 });

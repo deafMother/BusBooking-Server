@@ -28,7 +28,15 @@ const allBookingSchema = new mongoose.Schema({
   },
   bookingTime: {
     type: Date,
-    default: new Date(),
+    default: Date,
+    required: true
+  },
+  startAt: {
+    type: String,
+    required: true
+  },
+  destination: {
+    type: String,
     required: true
   }
 });

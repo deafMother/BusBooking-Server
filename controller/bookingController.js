@@ -182,7 +182,9 @@ exports.bookBusByNumber = catchAsync(async (req, res, next) => {
         userId: req.user.id,
         seatsBooked: seats,
         busNo: number,
-        busTime: myBus.busses[0].startTime
+        busTime: myBus.busses[0].startTime,
+        startAt,
+        destination
       });
       //this function is doing the above task, there is synchronization issues with this function so dont use it
       // let newPost  = addToBookings(req, seats, number, myBus.busses[0]);
