@@ -9,7 +9,8 @@ const BusSchema = mongoose.Schema({
   },
   route: {
     type: [String],
-    required: [true, "journey route must be provided"]
+    default: ["One", "Two"]
+    // required: [true, "journey route must be provided"] //note: make this required
   },
   startAt: {
     type: String,

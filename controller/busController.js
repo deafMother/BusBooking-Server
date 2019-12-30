@@ -6,6 +6,10 @@ const { addNewBus } = require("../controller/bookingController");
 // add a bus to the 'bus' collection
 // pending: When a new bus is added to the bus 'collection' and if it is active then it should be updated to be included in the bus list for a particular date if it matches the criteria
 // restrict this route to only administrators: Pending
+
+//
+//
+//  protect this route to only admins: pending
 exports.addBus = catchAsync(async (req, res, next) => {
   const doc = await Bus.create(req.body);
   await addNewBus(doc);
@@ -45,7 +49,7 @@ exports.findBus = catchAsync(async (req, res, next) => {
 //
 //
 exports.findAllBus = catchAsync(async (req, res, next) => {
-  const docs = await Bus.find({ active: true });
+  const docs = await Bus.find({});
   res.status(200).json({
     status: "success",
     length: docs.length,
@@ -56,8 +60,9 @@ exports.findAllBus = catchAsync(async (req, res, next) => {
 });
 
 // update a Bus
+//  protect this route to only admins: pending
 exports.updateBus = catchAsync(async (req, res, next) => {
-  // MAKE A REG EX TO MATCH BUS NUMBER PATTERN
+  // MAKE A REG EX TO MATCH BUS NUMBER PATTERN: Not required
   const doc = await Bus.findOneAndUpdate(
     { number: req.params.number },
     req.body,
@@ -80,6 +85,7 @@ exports.updateBus = catchAsync(async (req, res, next) => {
 });
 
 // aggregation pipeline
+//  protect this route to only admins
 exports.busStats = catchAsync(async (req, res, next) => {
   const stats = await Bus.aggregate([
     {
