@@ -103,6 +103,7 @@ busBookingSchema.methods.updateSeats = function(seats, bookingId) {
 
 busBookingSchema.methods.addBookingId = async function(bookingId) {
   // the booking id has to be pushed to the bookings array
+  console.log(bookingId);
   this.bookings.push({
     bookingNumber: bookingId
   });

@@ -181,6 +181,7 @@ exports.bookBusByNumber = catchAsync(async (req, res, next) => {
       const allBookings = await AllBookings.create({
         userId: req.user.id,
         seatsBooked: seats,
+        userName: req.user.name,
         busNo: number,
         busTime: myBus.busses[0].startTime,
         startAt,
@@ -197,6 +198,11 @@ exports.bookBusByNumber = catchAsync(async (req, res, next) => {
 
       // 3) add the booking id into the bus booking status
       await myBus.busses[0].addBookingId(allBookings._id);
+
+      // await myBus.busses[0].findByIdAndUpdate(req.user.id, {
+      //   $push: { myBookings: { bookingNumer: allBookings._id } }
+      // });
+
       // uodate the bus booking status
       await BusBooking.findOneAndUpdate(
         {
@@ -317,6 +323,30 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
       myBus: "seats cancelled"
     }
   });
+});
+
+/* 
+    fetch bus info for any date: if it is there by the admin to check the busse for that date between start and destination
+*/
+// this route is for the admin
+exports.getAllBusDetailsForDate = catchAsync(async (req, res, next) => {
+  let { date, startAt, destination } = req.query;
+  let busBooking = await BusBooking.findOne({
+    date,
+    startAt,
+    destination
+  }).populate("bookings.bookingNumber");
+
+  if (busBooking) {
+    res.status(200).json({
+      status: "success",
+      data: {
+        bus: busBooking
+      }
+    });
+  } else {
+    return next(new AppError("No bus for this date or route found", 404));
+  }
 });
 
 /* 

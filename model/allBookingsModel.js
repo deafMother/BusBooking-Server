@@ -6,6 +6,10 @@ const allBookingSchema = new mongoose.Schema({
     ref: "user",
     required: [true, "Each Booking should be associated with a user id"]
   },
+  userName: {
+    type: String,
+    required: [true, "Each booking must contain the user name"] // since user name can be edited so it is better to get the  user name from the user id
+  },
   seatsBooked: {
     type: [Number],
     required: [true, "Seats need to be provided"]

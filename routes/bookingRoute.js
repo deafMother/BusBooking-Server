@@ -13,4 +13,7 @@ router
   .route("/cancelSeat")
   .post(userController.protect, bookingController.cancelBooking);
 
+// this route should be available only to the admin: pending
+router.route("/busDetails").get(bookingController.getAllBusDetailsForDate);
+
 module.exports = router;
